@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm Empire Tycoon - Mobile Day Edition</title>
+    <style>
+        :root {
+            --bg-main: #f5f7fa;
+            --bg-card: #ffffff;
+            --text-dark: #2c3e50;
+            --text-muted: #7f8c8d;
+            --emerald: #2e7d32;
+            --emerald-light: #e8f5e9;
+            --gold: #c5a059;
+            --gold-light: #fdfaf2;
+            --border-color: #e2e8f0;
+            --border-active: #2e7d32;
+            --red: #c62828;
+            --red-light: #ffebee;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #eef2f5;
+            color: var(--text-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Mobile Viewport Container */
+        .mobile-container {
+            width: 100%;
+            max-width: 430px;
+            height: 100vh;
+            max-height: 850px;
+            background-color: var(--bg-main);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        /* Screen States */
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            padding: 16px;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* Header */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 12px;
+        }
+
+        .app-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--emerald);
+            letter-spacing: -0.5px;
+        }
+
+        .app-subtitle {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 1px;
+        }
+
+        /* Day Mode Cards */
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .card-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* 16-Tile Perimeter Board Grid */
+        #board-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        #board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 4px;
+            width: 100%;
+            aspect-ratio: 1;
+            max-width: 380px;
+            background-color: var(--border-color);
+            padding: 4px;
+            border-radius: 12px;
+        }
+
+        .tile {
+            background-color: var(--bg-card);
+            border-radius: 8px;
+            padding: 4px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 0.65rem;
+            position: relative;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .tile-color-tag {
+            height: 6px;
+            border-radius: 2px;
+            margin-bottom: 2px;
+        }
+
+        .tile-name {
+            font-weight: 700;
+            font-size: 0.55rem;
+            line-height: 1.1;
+            color: var(--text-dark);
+            word-break: break-word;
+        }
+
+        .tile-cost {
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .tile-owner {
+            font-size: 0.5rem;
+            font-weight: 800;
+            margin-top: 1px;
+            text-align: right;
+        }
+
+        .tile-tokens {
+            display: flex;
+            gap: 2px;
+            margin-top: 2px;
+            flex-wrap: wrap;
+        }
+
+        .token {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 1px solid #fff;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* Sector colors for Day Mode */
+        .tag-rice { background-color: #8d6e63; }
+        .tag-wheat { background-color: #a5d6a7; }
+        .tag-corn { background-color: #f48fb1; }
+        .tag-dairy { background-color: #ffcc80; }
+        .tag-fruit { background-color: #ef9a9a; }
+        .tag-coffee { background-color: #fff59d; }
+
+        /* Board Center */
+        .board-center {
+            grid-column: 2 / 5;
+            grid-row: 2 / 5;
+            background-color: var(--gold-light);
+            border-radius: 8px;
+            border: 1px dashed var(--gold);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 8px;
+        }
+
+        .dice-box {
+            display: flex;
+            gap: 8px;
+            margin: 6px 0;
+        }
+
+        .die {
+            width: 32px;
+            height: 32px;
+            background-color: var(--bg-card);
+            border: 1px solid var(--gold);
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .status-badge {
+            font-size: 0.7rem;
+            background-color: var(--emerald-light);
+            color: var(--emerald);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: 700;
+        }
+
+        /* Competitors list */
+        .hud-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .hud-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-card);
+            font-size: 0.8rem;
+        }
+
+        .hud-item.active {
+            border-color: var(--emerald);
+            background-color: var(--emerald-light);
+        }
+
+        .hud-name-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        /* Buttons & Forms */
+        .btn {
+            background-color: var(--emerald);
+            color: #fff;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            text-align: center;
+            width: 100%;
+        }
+
+        .btn:active {
+            opacity: 0.8;
+        }
+
+        .btn-secondary {
+            background-color: #fff;
+            color: var(--text-dark);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-ops {
+            background-color: #fff;
+            border: 1px solid var(--border-color);
+            color: var(--text-dark);
+            padding: 5px 8px;
+            font-size: 0.75rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            flex: 1;
+            text-align: center;
+        }
+
+        .btn-ops:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .btn-ops.active-ops {
+            border-color: var(--emerald);
+            color: var(--emerald);
+            background-color: var(--emerald-light);
+        }
+
+        /* Logs Console */
+        .log-box {
+            height: 90px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px;
+            font-size: 0.7rem;
+            background-color: #fafbfc;
+            line-height: 1.3;
+        }
+
+        .log-entry {
+            margin-bottom: 4px;
+            border-left: 2px solid var(--border-color);
+            padding-left: 4px;
+        }
+
+        .log-entry.buy { border-left-color: var(--emerald); color: var(--emerald); }
+        .log-entry.rent { border-left-color: var(--red); color: var(--red); }
+
+        /* Setup styles */
+        .setup-title {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .setup-title h2 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--emerald);
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+        .form-group select, .form-group input {
+            width: 100%;
+            background-color: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            color: var(--text-dark);
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-container">
+
+        <!-- SETUP SCREEN -->
+        <div class="screen active" id="setup-screen">
+            <div class="setup-title">
+                <h2>Farm Empire</h2>
+                <div style="font-size: 0.75rem; color: var(--gold); font-weight: bold; letter-spacing: 2px; text-transform: uppercase;">Mobile Day Mode</div>
+            </div>
+            
+            <div class="card" style="flex: 1; overflow-y: auto;">
+                <div class="form-group">
+                    <label>Opponents (AI Bots)</label>
+                    <select id="bot-count">
+                        <option value="1">1 Competitor</option>
+                        <option value="2">2 Competitors</option>
+                        <option value="3" selected>3 Competitors</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>AI Strategy Difficulty</label>
+                    <select id="ai-difficulty">
+                        <option value="Easy">Easy (Casual)</option>
+                        <option value="Normal" selected>Normal (Standard)</option>
+                        <option value="Hard">Hard (Tactical)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Starting Money ($)</label>
+                    <input type="number" id="starting-cash" value="1500" min="500" max="3000">
+                </div>
+                <div class="form-group">
+                    <label>Victory Net Worth Goal ($)</label>
+                    <input type="number" id="target-networth" value="4000" min="1500" max="20000">
+                </div>
+            </div>
+
+            <button class="btn" onclick="startMobileGame()">Initialize Match</button>
+        </div>
+
+        <!-- GAMEPLAY SCREEN -->
+        <div class="screen" id="gameplay-screen">
+            <div class="app-header">
+                <div>
+                    <div class="app-title">Farm Empire</div>
+                    <div class="app-subtitle">Agriculture Tycoon</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: bold;">Goal: $<span id="goal-text">4,000</span></div>
+                    <button onclick="saveMobileMatch()" class="btn-ops" style="padding: 2px 6px; font-size: 0.6rem; margin-top: 2px;">Save</button>
+                    <button onclick="loadMobileMatch()" class="btn-ops" id="btn-load-mobile" style="padding: 2px 6px; font-size: 0.6rem; margin-top: 2px; display: none;">Load</button>
+                </div>
+            </div>
+
+            <!-- Board Grid -->
+            <div id="board-wrapper">
+                <div id="board">
+                    <!-- Top Row -->
+                    <div class="tile" id="tile-0" style="grid-column: 1; grid-row: 1;">
+                        <div class="tile-name">Agri HQ</div>
+                        <div class="tile-cost">+$200</div>
+                        <div class="tile-tokens" id="tokens-0"></div>
+                    </div>
+                    <div class="tile" id="tile-1" style="grid-column: 2; grid-row: 1;">
+                        <div class="tile-color-tag tag-rice"></div>
+                        <div class="tile-name">Rice Valley</div>
+                        <div class="tile-cost">$60</div>
+                        <div class="tile-owner" id="owner-1"></div>
+                        <div class="tile-tokens" id="tokens-1"></div>
+                    </div>
+                    <div class="tile" id="tile-2" style="grid-column: 3; grid-row: 1;">
+                        <div class="tile-color-tag tag-rice"></div>
+                        <div class="tile-name">Wheat Plain</div>
+                        <div class="tile-cost">$80</div>
+                        <div class="tile-owner" id="owner-2"></div>
+                        <div class="tile-tokens" id="tokens-2"></div>
+                    </div>
+                    <div class="tile" id="tile-3" style="grid-column: 4; grid-row: 1;">
+                        <div class="tile-name">Tariff Tax</div>
+                        <div class="tile-cost">-$150</div>
+                        <div class="tile-tokens" id="tokens-3"></div>
+                    </div>
+                    <div class="tile" id="tile-4" style="grid-column: 5; grid-row: 1;">
+                        <div class="tile-name">Audit Hold</div>
+                        <div class="tile-cost">Hold</div>
+                        <div class="tile-tokens" id="tokens-4"></div>
+                    </div>
+
+                    <!-- Right Col -->
+                    <div class="tile" id="tile-5" style="grid-column: 5; grid-row: 2;">
+                        <div class="tile-color-tag tag-wheat"></div>
+                        <div class="tile-name">Corn Belt</div>
+                        <div class="tile-cost">$120</div>
+                        <div class="tile-owner" id="owner-5"></div>
+                        <div class="tile-tokens" id="tokens-5"></div>
+                    </div>
+                    <div class="tile" id="tile-6" style="grid-column: 5; grid-row: 3;">
+                        <div class="tile-color-tag tag-wheat"></div>
+                        <div class="tile-name">Dairy Ranch</div>
+                        <div class="tile-cost">$140</div>
+                        <div class="tile-owner" id="owner-6"></div>
+                        <div class="tile-tokens" id="tokens-6"></div>
+                    </div>
+                    <div class="tile" id="tile-7" style="grid-column: 5; grid-row: 4;">
+                        <div class="tile-name">Subsidy</div>
+                        <div class="tile-cost">+$150</div>
+                        <div class="tile-tokens" id="tokens-7"></div>
+                    </div>
+                    <div class="tile" id="tile-8" style="grid-column: 5; grid-row: 5;">
+                        <div class="tile-name">Audit Office</div>
+                        <div class="tile-cost">Go to Audit</div>
+                        <div class="tile-tokens" id="tokens-8"></div>
+                    </div>
+
+                    <!-- Bottom Row -->
+                    <div class="tile" id="tile-9" style="grid-column: 4; grid-row: 5;">
+                        <div class="tile-color-tag tag-corn"></div>
+                        <div class="tile-name">Fruit Orchard</div>
+                        <div class="tile-cost">$180</div>
+                        <div class="tile-owner" id="owner-9"></div>
+                        <div class="tile-tokens" id="tokens-9"></div>
+                    </div>
+                    <div class="tile" id="tile-10" style="grid-column: 3; grid-row: 5;">
+                        <div class="tile-color-tag tag-corn"></div>
+                        <div class="tile-name">Coffee Hill</div>
+                        <div class="tile-cost">$200</div>
+                        <div class="tile-owner" id="owner-10"></div>
+                        <div class="tile-tokens" id="tokens-10"></div>
+                    </div>
+                    <div class="tile" id="tile-11" style="grid-column: 2; grid-row: 5;">
+                        <div class="tile-name">Market Event</div>
+                        <div class="tile-cost">Event</div>
+                        <div class="tile-tokens" id="tokens-11"></div>
+                    </div>
+                    <div class="tile" id="tile-12" style="grid-column: 1; grid-row: 5;">
+                        <div class="tile-color-tag tag-dairy"></div>
+                        <div class="tile-name">Tea Garden</div>
+                        <div class="tile-cost">$240</div>
+                        <div class="tile-owner" id="owner-12"></div>
+                        <div class="tile-tokens" id="tokens-12"></div>
+                    </div>
+
+                    <!-- Left Col -->
+                    <div class="tile" id="tile-13" style="grid-column: 1; grid-row: 4;">
+                        <div class="tile-color-tag tag-dairy"></div>
+                        <div class="tile-name">Cotton Field</div>
+                        <div class="tile-cost">$260</div>
+                        <div class="tile-owner" id="owner-13"></div>
+                        <div class="tile-tokens" id="tokens-13"></div>
+                    </div>
+                    <div class="tile" id="tile-14" style="grid-column: 1; grid-row: 3;">
+                        <div class="tile-color-tag tag-fruit"></div>
+                        <div class="tile-name">Sugar Estate</div>
+                        <div class="tile-cost">$300</div>
+                        <div class="tile-owner" id="owner-14"></div>
+                        <div class="tile-tokens" id="tokens-14"></div>
+                    </div>
+                    <div class="tile" id="tile-15" style="grid-column: 1; grid-row: 2;">
+                        <div class="tile-color-tag tag-fruit"></div>
+                        <div class="tile-name">Agritech Park</div>
+                        <div class="tile-cost">$350</div>
+                        <div class="tile-owner" id="owner-15"></div>
+                        <div class="tile-tokens" id="tokens-15"></div>
+                    </div>
+
+                    <!-- Center Box -->
+                    <div class="board-center">
+                        <span class="status-badge" id="active-badge">Roll Phase</span>
+                        <div class="dice-box">
+                            <div class="die" id="d1">1</div>
+                            <div class="die" id="d2">1</div>
+                        </div>
+                        <button class="btn" id="btn-mobile-roll" onclick="mobileRoll()" style="padding: 6px 12px; font-size: 0.8rem;">Roll</button>
+                        <button class="btn" id="btn-mobile-end" onclick="mobileEnd()" style="padding: 6px 12px; font-size: 0.8rem; display: none;">End Turn</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Competitor List -->
+            <div class="card" style="padding: 10px; margin-bottom: 8px;">
+                <div class="hud-list" id="hud-list">
+                    <!-- Added dynamically -->
+                </div>
+            </div>
+
+            <!-- Operations / Decisions Deck -->
+            <div class="card" style="padding: 10px; margin-bottom: 8px; flex: 1; overflow-y: auto;">
+                <!-- Purchase Dialog -->
+                <div id="buy-dialog" style="display: none; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                    <div style="font-size: 0.8rem; font-weight: 800; margin-bottom: 5px;" id="buy-desc">Landed property options</div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn" style="flex: 1; padding: 6px; font-size: 0.75rem;" onclick="buyMobileProperty()">Acquire</button>
+                        <button class="btn btn-secondary" style="flex: 1; padding: 6px; font-size: 0.75rem;" onclick="declineMobileProperty()">Decline</button>
+                    </div>
+                </div>
+
+                <!-- Asset Operations -->
+                <div class="card-title">Manage Assets</div>
+                <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 8px;">
+                    <select id="mobile-ops-select" onchange="updateMobileOpsDetails()" style="flex: 1.5; font-size: 0.75rem; padding: 4px; background: #fff; border: 1px solid var(--border-color); border-radius: 6px; outline: none;">
+                        <option value="">- Select Owned -</option>
+                    </select>
+                </div>
+                <div id="mobile-ops-desc" style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 8px; min-height: 24px;">
+                    Select an owned asset to perform management actions.
+                </div>
+                <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                    <button class="btn-ops" id="ops-up" onclick="mobileUpgrade()" disabled>Upgrade</button>
+                    <button class="btn-ops" id="ops-down" onclick="mobileDowngrade()" disabled>Sell Up</button>
+                    <button class="btn-ops" id="ops-mort" onclick="mobileMortgage()" disabled>Mortgage</button>
+                    <button class="btn-ops" id="ops-unmort" onclick="mobileUnmortgage()" disabled>Unmortgage</button>
+                </div>
+            </div>
+
+            <!-- Logs -->
+            <div class="log-box" id="mobile-logs">
+                <!-- Log entries fill here -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Mobile Day Mode Engine -->
+    <script>
+        // Setup Web Audio API Synthesizer
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playChime() {
+            try {
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(900, audioCtx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.005, audioCtx.currentTime + 0.2);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.25);
+            } catch(e){}
+        }
+
+        function playDice() {
+            try {
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(40, audioCtx.currentTime + 0.12);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.005, audioCtx.currentTime + 0.15);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.18);
+            } catch(e){}
+        }
+
+        // Configuration
+        const TILES = [
+            { id: 0, name: "Agri HQ", type: "Start" },
+            { id: 1, name: "Rice Valley", type: "Property", sector: "Rice", cost: 60, baseRent: 4, upgradeCost: 40, rentTiers: [4, 20, 60, 180, 320, 450], mortgage: 30, unmortgage: 33 },
+            { id: 2, name: "Wheat Plain", type: "Property", sector: "Rice", cost: 80, baseRent: 6, upgradeCost: 40, rentTiers: [6, 30, 90, 270, 400, 550], mortgage: 40, unmortgage: 44 },
+            { id: 3, name: "Tariff Tax", type: "Tax", value: 150 },
+            { id: 4, name: "Audit Hold", type: "RegulatoryReview" },
+            { id: 5, name: "Corn Belt", type: "Property", sector: "Wheat", cost: 120, baseRent: 8, upgradeCost: 60, rentTiers: [8, 40, 100, 300, 450, 600], mortgage: 60, unmortgage: 66 },
+            { id: 6, name: "Dairy Ranch", type: "Property", sector: "Wheat", cost: 140, baseRent: 10, upgradeCost: 60, rentTiers: [10, 50, 150, 450, 625, 750], mortgage: 70, unmortgage: 77 },
+            { id: 7, name: "Subsidy", type: "Subsidy", value: 150 },
+            { id: 8, name: "Audit Office", type: "GoToRegulatoryReview" },
+            { id: 9, name: "Fruit Orchard", type: "Property", sector: "Corn", cost: 180, baseRent: 14, upgradeCost: 80, rentTiers: [14, 70, 200, 550, 750, 950], mortgage: 90, unmortgage: 99 },
+            { id: 10, name: "Coffee Hill", type: "Property", sector: "Corn", cost: 200, baseRent: 16, upgradeCost: 80, rentTiers: [16, 80, 220, 600, 800, 1000], mortgage: 100, unmortgage: 110 },
+            { id: 11, name: "Market Event", type: "MarketFluctuation" },
+            { id: 12, name: "Tea Garden", type: "Property", sector: "Dairy", cost: 240, baseRent: 20, upgradeCost: 100, rentTiers: [20, 100, 300, 750, 925, 1100], mortgage: 120, unmortgage: 132 },
+            { id: 13, name: "Cotton Field", type: "Property", sector: "Dairy", cost: 260, baseRent: 22, upgradeCost: 100, rentTiers: [22, 110, 330, 800, 975, 1150], mortgage: 130, unmortgage: 143 },
+            { id: 14, name: "Sugar Estate", type: "Property", sector: "Fruit", cost: 300, baseRent: 26, upgradeCost: 120, rentTiers: [26, 130, 390, 900, 1100, 1275], mortgage: 150, unmortgage: 165 },
+            { id: 15, name: "Agritech Park", type: "Property", sector: "Fruit", cost: 350, baseRent: 35, upgradeCost: 120, rentTiers: [35, 175, 500, 1100, 1300, 1500], mortgage: 175, unmortgage: 193 }
+        ];
+
+        let players = [];
+        let activePlayerIndex = 0;
+        let propertyStates = {};
+        let turnState = "Rolling"; // Rolling, Decisions
+        let targetNetWorth = 4000;
+        let startingCash = 1500;
+        let botCount = 3;
+        let aiDifficulty = "Normal";
+
+        const mobileColors = ["#2e7d32", "#c5a059", "#b39ddb", "#ef9a9a"];
+
+        // Init
+        TILES.forEach(t => {
+            if (t.type === "Property") {
+                propertyStates[t.id] = { owner: -1, level: 0, mortgaged: false };
+            }
+        });
+
+        function log(msg, type="system") {
+            const consoleBox = document.getElementById("mobile-logs");
+            const entry = document.createElement("div");
+            entry.className = `log-entry ${type}`;
+            entry.innerText = msg;
+            consoleBox.appendChild(entry);
+            consoleBox.scrollTop = consoleBox.scrollHeight;
+        }
+
+        function checkSaveExists() {
+            const save = localStorage.getItem("farm_empire_mobile_save");
+            document.getElementById("btn-load-mobile").style.display = save ? "inline-block" : "none";
+        }
+        checkSaveExists();
+
+        function startMobileGame() {
+            botCount = parseInt(document.getElementById("bot-count").value);
+            aiDifficulty = document.getElementById("ai-difficulty").value;
+            startingCash = parseInt(document.getElementById("starting-cash").value);
+            targetNetWorth = parseInt(document.getElementById("target-networth").value);
+
+            document.getElementById("goal-text").innerText = targetNetWorth.toLocaleString();
+
+            players = [
+                { id: 0, name: "You (Executive)", isBot: false, cash: startingCash, pos: 0, auditTurns: 0, bankrupt: false, color: mobileColors[0] }
+            ];
+
+            for (let i = 1; i <= botCount; i++) {
+                players.push({
+                    id: i,
+                    name: `AgriBot ${i}`,
+                    isBot: true,
+                    cash: startingCash,
+                    pos: 0,
+                    auditTurns: 0,
+                    bankrupt: false,
+                    color: mobileColors[i % mobileColors.length]
+                });
+            }
+
+            // Reset Board ownerships
+            TILES.forEach(t => {
+                if (t.type === "Property") {
+                    propertyStates[t.id] = { owner: -1, level: 0, mortgaged: false };
+                }
+            });
+
+            document.getElementById("setup-screen").classList.remove("active");
+            document.getElementById("gameplay-screen").classList.add("active");
+            
+            log("Mobile Match initialized. Tap Roll to begin!");
+
+            activePlayerIndex = 0;
+            turnState = "Rolling";
+            updateUI();
+            checkSaveExists();
+        }
+
+        function calculateNetWorth(player) {
+            let nw = player.cash;
+            TILES.forEach(t => {
+                if (t.type === "Property") {
+                    let state = propertyStates[t.id];
+                    if (state.owner === player.id) {
+                        if (!state.mortgaged) {
+                            nw += t.cost;
+                            nw += state.level * t.upgradeCost;
+                        } else {
+                            nw += t.mortgage;
+                        }
+                    }
+                }
+            });
+            return nw;
+        }
+
+        function updateUI() {
+            // Update HUD list
+            const hud = document.getElementById("hud-list");
+            hud.innerHTML = "";
+
+            players.forEach(p => {
+                const item = document.createElement("div");
+                item.className = `hud-item ${activePlayerIndex === p.id && !p.bankrupt ? 'active' : ''}`;
+                
+                let nw = calculateNetWorth(p);
+                let status = p.bankrupt ? "BANKRUPT" : p.auditTurns > 0 ? `AUDIT` : "ACTIVE";
+                
+                item.innerHTML = `
+                    <div style="font-weight: 700; display:flex; align-items:center;">
+                        <span class="hud-name-dot" style="background: ${p.color};"></span>
+                        ${p.name}
+                    </div>
+                    <div style="text-align: right; font-weight: 600;">
+                        <div>$${p.cash.toLocaleString()} (NW: $${nw.toLocaleString()})</div>
+                        <div style="font-size: 0.6rem; color: var(--text-muted);">${status}</div>
+                    </div>
+                `;
+                hud.appendChild(item);
+            });
+
+            // Update board owner tags
+            TILES.forEach(t => {
+                const tokenContainer = document.getElementById(`tokens-${t.id}`);
+                if (tokenContainer) tokenContainer.innerHTML = "";
+
+                const ownerText = document.getElementById(`owner-${t.id}`);
+                if (ownerText) {
+                    let state = propertyStates[t.id];
+                    if (state.owner === -1) {
+                        ownerText.innerText = "";
+                    } else {
+                        let owner = players.find(p => p.id === state.owner);
+                        ownerText.innerText = `L${state.level}`;
+                        ownerText.style.color = owner.color;
+                    }
+                }
+            });
+
+            // Place tokens
+            players.forEach(p => {
+                if (!p.bankrupt) {
+                    const tokenContainer = document.getElementById(`tokens-${p.pos}`);
+                    if (tokenContainer) {
+                        const token = document.createElement("span");
+                        token.className = "token";
+                        token.style.background = p.color;
+                        tokenContainer.appendChild(token);
+                    }
+                }
+            });
+
+            const activePlayer = players[activePlayerIndex];
+            const isHuman = !activePlayer.isBot;
+
+            // Roll / End buttons
+            document.getElementById("btn-mobile-roll").style.display = (isHuman && turnState === "Rolling") ? "block" : "none";
+            document.getElementById("btn-mobile-end").style.display = (isHuman && turnState === "Decisions") ? "block" : "none";
+            document.getElementById("active-badge").innerText = isHuman ? `${turnState} Phase` : "Bot Thinking";
+
+            // Ops select box
+            const select = document.getElementById("mobile-ops-select");
+            if (isHuman) {
+                select.innerHTML = '<option value="">- Manage District -</option>';
+                TILES.forEach(t => {
+                    if (t.type === "Property") {
+                        let state = propertyStates[t.id];
+                        if (state.owner === activePlayer.id) {
+                            select.innerHTML += `<option value="${t.id}">${t.name} (L${state.level}${state.mortgaged ? ', Mortgaged':''})</option>`;
+                        }
+                    }
+                });
+            }
+        }
+
+        async function mobileRoll() {
+            playDice();
+            const activePlayer = players[activePlayerIndex];
+
+            if (activePlayer.auditTurns > 0) {
+                activePlayer.auditTurns--;
+                log(`${activePlayer.name} stays in regulatory audit. Remaining: ${activePlayer.auditTurns}`);
+                if (activePlayer.cash >= 100) {
+                    activePlayer.cash -= 100;
+                    activePlayer.auditTurns = 0;
+                    log(`${activePlayer.name} paid $100 clearance fine. Released!`);
+                } else {
+                    turnState = "Decisions";
+                    updateUI();
+                    return;
+                }
+            }
+
+            let d1 = Math.floor(Math.random() * 6) + 1;
+            let d2 = Math.floor(Math.random() * 6) + 1;
+            document.getElementById("d1").innerText = d1;
+            document.getElementById("d2").innerText = d2;
+
+            let spaces = d1 + d2;
+            log(`${activePlayer.name} rolled a total of ${spaces}`);
+
+            let oldPos = activePlayer.pos;
+            activePlayer.pos = (oldPos + spaces) % TILES.length;
+
+            if (activePlayer.pos < oldPos) {
+                activePlayer.cash += 200;
+                log(`${activePlayer.name} passed HQ, received $200 subsidy.`, "buy");
+                playChime();
+            }
+
+            updateUI();
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            await resolveMobileLanded(activePlayer);
+        }
+
+        async function resolveMobileLanded(player) {
+            const tile = TILES[player.pos];
+            log(`${player.name} landed on ${tile.name}.`);
+
+            if (tile.type === "Property") {
+                let state = propertyStates[tile.id];
+                if (state.owner === -1) {
+                    if (!player.isBot) {
+                        document.getElementById("buy-desc").innerHTML = `Acquire ${tile.name} for $${tile.cost}?`;
+                        document.getElementById("buy-dialog").style.display = "block";
+                        turnState = "Decisions";
+                        updateUI();
+                        return; // Wait for UI tap
+                    } else {
+                        await botPurchase(player, tile);
+                    }
+                } else if (state.owner !== player.id && !state.mortgaged) {
+                    let landlord = players.find(p => p.id === state.owner);
+                    let rent = calculateRent(tile);
+                    log(`${player.name} paid $${rent} rent to ${landlord.name}.`, "rent");
+                    player.cash -= rent;
+                    landlord.cash += rent;
+
+                    if (player.cash < 0) {
+                        log(`${player.name} is negative cash. Recovering...`);
+                        resolveNegativeCash(player);
+                    }
+                    playChime();
+                }
+            } else if (tile.type === "Tax") {
+                player.cash -= tile.value;
+                log(`${player.name} paid $${tile.value} environmental tax.`, "rent");
+                if (player.cash < 0) resolveNegativeCash(player);
+            } else if (tile.type === "Subsidy") {
+                player.cash += tile.value;
+                log(`${player.name} received $${tile.value} green subsidy.`, "buy");
+                playChime();
+            } else if (tile.type === "GoToRegulatoryReview") {
+                log(`${player.name} is sent to Audit Hold!`);
+                player.pos = 4; // Index of Audit Hold
+                player.auditTurns = 2;
+            }
+
+            checkVictory();
+
+            turnState = "Decisions";
+            updateUI();
+
+            if (player.isBot && !player.bankrupt) {
+                await new Promise(resolve => setTimeout(resolve, 800));
+                await botDecisions(player);
+            }
+        }
+
+        function calculateRent(tile) {
+            let state = propertyStates[tile.id];
+            if (state.level > 0) return tile.rentTiers[state.level];
+            let monopoly = checkSectorMonopoly(tile.sector, state.owner);
+            return monopoly ? tile.baseRent * 2 : tile.baseRent;
+        }
+
+        function checkSectorMonopoly(sector, playerID) {
+            let sectorTiles = TILES.filter(t => t.sector === sector);
+            return sectorTiles.every(t => propertyStates[t.id].owner === playerID && !propertyStates[t.id].mortgaged);
+        }
+
+        function buyMobileProperty() {
+            const player = players[activePlayerIndex];
+            const tile = TILES[player.pos];
+            if (player.cash >= tile.cost) {
+                player.cash -= tile.cost;
+                propertyStates[tile.id].owner = player.id;
+                log(`${player.name} bought ${tile.name} for $${tile.cost}.`, "buy");
+                playChime();
+            }
+            document.getElementById("buy-dialog").style.display = "none";
+            updateUI();
+        }
+
+        function declineMobileProperty() {
+            document.getElementById("buy-dialog").style.display = "none";
+            updateUI();
+        }
+
+        function mobileEnd() {
+            checkVictory();
+            if (document.getElementById("victory-screen").style.display === "flex") return;
+
+            let attempts = 0;
+            do {
+                activePlayerIndex = (activePlayerIndex + 1) % players.length;
+                attempts++;
+            } while (players[activePlayerIndex].bankrupt && attempts < players.length);
+
+            turnState = "Rolling";
+            updateUI();
+
+            if (players[activePlayerIndex].isBot) {
+                setTimeout(mobileRoll, 800);
+            }
+        }
+
+        // Ops functions (Mobile panel)
+        function updateMobileOpsDetails() {
+            const val = document.getElementById("mobile-ops-select").value;
+            const desc = document.getElementById("mobile-ops-desc");
+
+            const up = document.getElementById("ops-up");
+            const down = document.getElementById("ops-down");
+            const mort = document.getElementById("ops-mort");
+            const unmort = document.getElementById("ops-unmort");
+
+            if (!val) {
+                desc.innerText = "Select an owned asset to perform management actions.";
+                up.disabled = true; down.disabled = true; mort.disabled = true; unmort.disabled = true;
+                return;
+            }
+
+            const tile = TILES[val];
+            const state = propertyStates[val];
+            const player = players[activePlayerIndex];
+
+            desc.innerText = `L${state.level} Upgrades | Cost: $${tile.upgradeCost} | Rent: $${calculateRent(tile)} | Mortgage: $${tile.mortgage}`;
+
+            let monopoly = checkSectorMonopoly(tile.sector, player.id);
+            up.disabled = !(monopoly && state.level < 5 && player.cash >= tile.upgradeCost && !state.mortgaged);
+            down.disabled = !(state.level > 0);
+            mort.disabled = !(state.level === 0 && !state.mortgaged);
+            unmort.disabled = !(state.mortgaged && player.cash >= tile.unmort);
+        }
+
+        function mobileUpgrade() {
+            const val = document.getElementById("mobile-ops-select").value;
+            const tile = TILES[val];
+            const player = players[activePlayerIndex];
+            player.cash -= tile.upgradeCost;
+            propertyStates[val].level++;
+            log(`${player.name} upgraded ${tile.name} to Level ${propertyStates[val].level}.`, "buy");
+            playChime();
+            updateMobileOpsDetails();
+            updateUI();
+        }
+
+        function mobileDowngrade() {
+            const val = document.getElementById("mobile-ops-select").value;
+            const tile = TILES[val];
+            const player = players[activePlayerIndex];
+            propertyStates[val].level--;
+            player.cash += Math.floor(tile.upgradeCost / 2);
+            log(`${player.name} sold upgrade on ${tile.name} for $${Math.floor(tile.upgradeCost / 2)}.`);
+            updateMobileOpsDetails();
+            updateUI();
+        }
+
+        function mobileMortgage() {
+            const val = document.getElementById("mobile-ops-select").value;
+            const tile = TILES[val];
+            const player = players[activePlayerIndex];
+            propertyStates[val].mortgaged = true;
+            player.cash += tile.mortgage;
+            log(`${player.name} mortgaged ${tile.name} for $${tile.mortgage}.`);
+            updateMobileOpsDetails();
+            updateUI();
+        }
+
+        function mobileUnmortgage() {
+            const val = document.getElementById("mobile-ops-select").value;
+            const tile = TILES[val];
+            const player = players[activePlayerIndex];
+            player.cash -= tile.unmortgage;
+            propertyStates[val].mortgaged = false;
+            log(`${player.name} unmortgaged ${tile.name} for $${tile.unmortgage}.`);
+            updateMobileOpsDetails();
+            updateUI();
+        }
+
+        // AI Logic
+        async function botPurchase(bot, tile) {
+            let buffer = aiDifficulty === "Easy" ? 50 : aiDifficulty === "Normal" ? 150 : 250;
+            if (bot.cash - tile.cost >= buffer) {
+                bot.cash -= tile.cost;
+                propertyStates[tile.id].owner = bot.id;
+                log(`${bot.name} bought ${tile.name} ($${tile.cost}).`, "buy");
+                playChime();
+            } else {
+                log(`${bot.name} declined to buy ${tile.name}.`);
+            }
+        }
+
+        async function botDecisions(bot) {
+            let owned = TILES.filter(t => t.type === "Property" && propertyStates[t.id].owner === bot.id);
+            for (let i = 0; i < owned.length; i++) {
+                let tile = owned[i];
+                let state = propertyStates[tile.id];
+                let monopoly = checkSectorMonopoly(tile.sector, bot.id);
+                let buffer = aiDifficulty === "Easy" ? 50 : aiDifficulty === "Normal" ? 150 : 250;
+
+                if (monopoly && state.level < 5 && bot.cash - tile.upgradeCost >= buffer && !state.mortgaged) {
+                    bot.cash -= tile.upgradeCost;
+                    state.level++;
+                    log(`${bot.name} upgraded ${tile.name} to L${state.level}.`, "buy");
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                }
+            }
+            mobileEnd();
+        }
+
+        // Bankruptcy recovery
+        function resolveNegativeCash(player) {
+            let owned = TILES.filter(t => t.type === "Property" && propertyStates[t.id].owner === player.id);
+            owned.forEach(tile => {
+                let state = propertyStates[tile.id];
+                while (state.level > 0 && player.cash < 0) {
+                    state.level--;
+                    player.cash += Math.floor(tile.upgradeCost / 2);
+                    log(`${player.name} force-sold upgrade on ${tile.name} for $${Math.floor(tile.upgradeCost / 2)}.`);
+                }
+            });
+
+            if (player.cash < 0) {
+                owned.forEach(tile => {
+                    let state = propertyStates[tile.id];
+                    if (!state.mortgaged && state.level === 0 && player.cash < 0) {
+                        state.mortgaged = true;
+                        player.cash += tile.mortgage;
+                        log(`${player.name} force-mortgaged ${tile.name} for $${tile.mortgage}.`);
+                    }
+                });
+            }
+
+            if (player.cash < 0) {
+                player.bankrupt = true;
+                player.cash = 0;
+                log(`[BANKRUPTCY] ${player.name} has been eliminated!`, "rent");
+                TILES.forEach(t => {
+                    if (t.type === "Property" && propertyStates[t.id].owner === player.id) {
+                        propertyStates[t.id].owner = -1;
+                        propertyStates[t.id].level = 0;
+                        propertyStates[t.id].mortgaged = false;
+                    }
+                });
+            }
+        }
+
+        // Victory Check
+        function checkVictory() {
+            let activeCount = 0;
+            let survivor = null;
+            let targetWinner = null;
+
+            players.forEach(p => {
+                if (!p.bankrupt) {
+                    activeCount++;
+                    survivor = p;
+
+                    let nw = calculateNetWorth(p);
+                    if (nw >= targetNetWorth) {
+                        targetWinner = p;
+                    }
+                }
+            });
+
+            if (targetWinner) {
+                declareWinner(targetWinner, `Reached target net worth of $${targetNetWorth.toLocaleString()}!`);
+            } else if (activeCount === 1) {
+                declareWinner(survivor, "Sole survivor of the match!");
+            }
+        }
+
+        function declareWinner(player, reason) {
+            document.getElementById("victory-content").innerHTML = `
+                <strong style="font-size: 1.2rem; color: ${player.color}">${player.name}</strong><br><br>
+                Reason: ${reason}<br>
+                Final Assets: $${calculateNetWorth(player).toLocaleString()}
+            `;
+            document.getElementById("victory-screen").style.display = "flex";
+        }
+
+        function resetToMenu() {
+            document.getElementById("victory-screen").style.display = "none";
+            document.getElementById("setup-screen").classList.add("active");
+            document.getElementById("gameplay-screen").classList.remove("active");
+        }
+
+        // Saves
+        function saveMobileMatch() {
+            const data = {
+                targetNetWorth,
+                startingCash,
+                botCount,
+                aiDifficulty,
+                players,
+                activePlayerIndex,
+                propertyStates,
+                turnState,
+                logs: document.getElementById("mobile-logs").innerHTML
+            };
+            localStorage.setItem("farm_empire_mobile_save", JSON.stringify(data));
+            log("Match auto-saved successfully!");
+            checkSaveExists();
+        }
+
+        function loadMobileMatch() {
+            const save = localStorage.getItem("farm_empire_mobile_save");
+            if (!save) return;
+
+            const data = JSON.parse(save);
+            targetNetWorth = data.targetNetWorth;
+            startingCash = data.startingCash;
+            botCount = data.botCount;
+            aiDifficulty = data.aiDifficulty;
+            players = data.players;
+            activePlayerIndex = data.activePlayerIndex;
+            propertyStates = data.propertyStates;
+            turnState = data.turnState;
+
+            document.getElementById("goal-text").innerText = targetNetWorth.toLocaleString();
+            document.getElementById("mobile-logs").innerHTML = data.logs;
+
+            log("Match loaded successfully!");
+            updateUI();
+        }
+    </script>
+</body>
+</html>
