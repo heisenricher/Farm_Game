@@ -146,6 +146,11 @@
             border: 1px solid transparent;
         }
 
+        .tile.monopoly {
+            box-shadow: 0 0 6px var(--gold);
+            border-color: var(--gold);
+        }
+
         .tile-color-tag {
             height: 6px;
             border-radius: 2px;
@@ -782,14 +787,33 @@
                 const tokenContainer = document.getElementById(`tokens-${t.id}`);
                 if (tokenContainer) tokenContainer.innerHTML = "";
 
+                const tileEl = document.getElementById(`tile-${t.id}`);
                 const ownerText = document.getElementById(`owner-${t.id}`);
-                if (ownerText) {
+                if (ownerText && tileEl) {
                     let state = propertyStates[t.id];
                     if (state.owner === -1) {
                         ownerText.innerText = "";
+                        tileEl.classList.remove("monopoly");
                     } else {
                         let owner = players.find(p => p.id === state.owner);
-                        ownerText.innerText = `L${state.level}`;
+                        
+                        // Highlight monopoly group
+                        let monopoly = checkSectorMonopoly(t.sector, state.owner);
+                        if (monopoly) {
+                            tileEl.classList.add("monopoly");
+                        } else {
+                            tileEl.classList.remove("monopoly");
+                        }
+
+                        let emoji = "🌱";
+                        if (state.mortgaged) emoji = "🔒";
+                        else if (state.level === 1) emoji = "🏡";
+                        else if (state.level === 2) emoji = "🚜";
+                        else if (state.level === 3) emoji = "🏭";
+                        else if (state.level === 4) emoji = "🚢";
+                        else if (state.level === 5) emoji = "🏢";
+
+                        ownerText.innerText = state.mortgaged ? "🔒 Mort" : `L${state.level} ${emoji}`;
                         ownerText.style.color = owner.color;
                     }
                 }
